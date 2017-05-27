@@ -148,7 +148,7 @@ function createPrefetcer(list) {
     };
 }
 
-function runPrefetchTask(prefetcher, options) {
+function runPrefetchTask(prefetcher, options, resolveHeaders) {
     const url = prefetcher.next();
     if (!url) {
         return Promise.resolve();
@@ -158,7 +158,7 @@ function runPrefetchTask(prefetcher, options) {
         // check cache
         return getCachedImagePath(url, options)
         // if not found download
-            .catch(() => cacheImage(url, options))
+            .catch(() => cacheImage(url, options, resolveHeaders))
             // allow prefetch task to fail without terminating other prefetch tasks
             .catch(_.noop)
             // then run next task
@@ -260,11 +260,11 @@ function deleteCachedImage(url, options = defaultOptions) {
  * @param options
  * @returns {Promise}
  */
-function cacheMultipleImages(urls, options = defaultOptions) {
+function cacheMultipleImages(urls, options = defaultOptions, resolveHeaders = defaultResolveHeaders) {
     const prefetcher = createPrefetcer(urls);
     const numberOfWorkers = urls.length;
     const promises = _.times(numberOfWorkers, () =>
-        runPrefetchTask(prefetcher, options)
+        runPrefetchTask(prefetcher, options, resolveHeaders)
     );
     return Promise.all(promises);
 }
